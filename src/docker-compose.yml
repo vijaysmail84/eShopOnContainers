@@ -1,22 +1,27 @@
 version: '3.4'
 
 services:
-
+  #seq for centralized logs
   seq:
     image: datalust/seq:latest
 
+  #sql server 2019
   sqldata:
     image: mcr.microsoft.com/mssql/server:2019-latest 
 
+  #mongo db   
   nosqldata:
     image: mongo
 
+  #redis image   
   basketdata:
     image: redis:alpine
 
+  #rabbit mq for event bus. service to servic connectivity.
   rabbitmq:
     image: rabbitmq:3-management-alpine
 
+  #identity api using STS.
   identity-api:
     image: ${REGISTRY:-eshop}/identity.api:${PLATFORM:-linux}-${TAG:-latest}
     build:
@@ -24,7 +29,8 @@ services:
       dockerfile: Services/Identity/Identity.API/Dockerfile
     depends_on:
       - sqldata
-
+  
+  #basket api
   basket-api:
     image: ${REGISTRY:-eshop}/basket.api:${PLATFORM:-linux}-${TAG:-latest}
     build:
@@ -78,9 +84,11 @@ services:
     depends_on:
       - sqldata
 
+  #bff - backend for front end. Envoy API gateway for mobile clients.
   mobileshoppingapigw:
     image: envoyproxy/envoy:v1.11.1
 
+  #mobile client aggregator. Call multiple microservics and aggregate date.
   mobileshoppingagg:
     image: ${REGISTRY:-eshop}/mobileshoppingagg:${PLATFORM:-linux}-${TAG:-latest}
     build:
@@ -94,7 +102,8 @@ services:
       - ordering-api
       - catalog-api
       - basket-api
-
+  
+  #web client aggregator.
   webshoppingagg:
     image: ${REGISTRY:-eshop}/webshoppingagg:${PLATFORM:-linux}-${TAG:-latest}
     build:
@@ -109,6 +118,7 @@ services:
       - catalog-api
       - basket-api
 
+  #singnal r hub for oredring domain.
   ordering-signalrhub:
     image: ${REGISTRY:-eshop}/ordering.signalrhub:${PLATFORM:-linux}-${TAG:-latest}
     build:
@@ -157,5 +167,6 @@ services:
     depends_on:
       - webhooks-api
 
+  #envoy api gateway..
   webshoppingapigw:
     image: envoyproxy/envoy:v1.11.1
